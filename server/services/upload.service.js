@@ -21,14 +21,18 @@ export async function uploadImageToGCS(file) {
     },
   });
 
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     stream.on("error", reject);
-
-    stream.on("finish", () => {
-      const gcsUri = `gs://${process.env.GCS_BUCKET}/${filename}`;
-      resolve(gcsUri);
-    });
-
+    stream.on("finish", resolve);
     stream.end(file.buffer);
   });
+
+  const gcsUri = `gs://${process.env.GCS_BUCKET}/${filename}`;
+
+  const [signedUrl] = await blob.getSignedUrl({
+    action: "read",
+    expires: Date.now() + 60 * 60 * 1000, // 1 hour
+  });
+
+  return { gcsUri, signedUrl };
 }

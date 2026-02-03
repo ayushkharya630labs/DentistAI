@@ -16,10 +16,12 @@ export async function analyzeController(req, res) {
       });
     }
 
-    const imageUri = await uploadImageToGCS(file);
+    // ✅ Upload image + get signed preview URL
+    const { gcsUri, signedUrl } = await uploadImageToGCS(file);
 
+    // ✅ Call Gemini AI
     const aiResult = await dentistAgent({
-      imageUri,
+      imageUri: gcsUri,
       userText: text,
     });
 
@@ -32,10 +34,10 @@ export async function analyzeController(req, res) {
 
     const safeResponse = enforceMedicalGuardrails(aiResult.output);
 
-    // ✅ Save to BigQuery
+    // ✅ Save interaction to BigQuery (training dataset)
     await logInteraction({
       id: uuidv4(),
-      imageUri,
+      imageUri: gcsUri,
       userText: text,
       aiResponse: safeResponse,
       approved: null,
@@ -43,13 +45,15 @@ export async function analyzeController(req, res) {
       timestamp: new Date(),
     });
 
+    // ✅ Return signed image URL to frontend
     return res.status(200).json({
       success: true,
       data: {
-        imageUri,
+        imageUrl: signedUrl, // frontend will display this
         findings: safeResponse,
       },
     });
+
   } catch (error) {
     console.error("Analyze Controller Error:", error);
     return res.status(500).json({
