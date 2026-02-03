@@ -11,16 +11,41 @@ const bigquery = new BigQuery({
 const datasetId = "dentistai_logs";
 const tableId = "interactions";
 
+const schema = [
+  { name: "id", type: "STRING" },
+  { name: "imageUri", type: "STRING" },
+  { name: "userText", type: "STRING" },
+  { name: "aiResponse", type: "STRING" },
+  { name: "approved", type: "BOOL" },
+  { name: "correction", type: "STRING" },
+  { name: "timestamp", type: "TIMESTAMP" },
+];
+
+async function ensureTableExists() {
+  const dataset = bigquery.dataset(datasetId);
+  const [datasetExists] = await dataset.exists();
+
+  if (!datasetExists) {
+    await dataset.create();
+    console.log("✅ Dataset created");
+  }
+
+  const table = dataset.table(tableId);
+  const [tableExists] = await table.exists();
+
+  if (!tableExists) {
+    await dataset.createTable(tableId, { schema });
+    console.log("✅ Table created");
+  }
+}
+
 /**
- * Save AI interaction to BigQuery
+ * Save AI interaction
  */
 export async function logInteraction(row) {
   try {
-    await bigquery
-      .dataset(datasetId)
-      .table(tableId)
-      .insert([row]);
-
+    await ensureTableExists();
+    await bigquery.dataset(datasetId).table(tableId).insert([row]);
     console.log("✅ Logged interaction to BigQuery");
   } catch (err) {
     console.error("BigQuery insert error:", err);
