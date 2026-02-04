@@ -13,11 +13,13 @@ const tableId = "interactions";
 
 const schema = [
   { name: "id", type: "STRING" },
+  { name: "sessionId", type: "STRING" },
+  { name: "role", type: "STRING" }, 
   { name: "imageUri", type: "STRING" },
-  { name: "userText", type: "STRING" },
-  { name: "aiResponse", type: "STRING" },
+  { name: "message", type: "STRING" },
   { name: "approved", type: "BOOL" },
   { name: "correction", type: "STRING" },
+  { name: "status", type: "STRING" },
   { name: "timestamp", type: "TIMESTAMP" },
 ];
 

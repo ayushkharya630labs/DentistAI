@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 
-import analyzeRoutes from "./routes/analyze.routes.js";
+import consultRoutes from "./routes/consult.routes.js";
 import feedbackRoutes from "./routes/feedback.routes.js";
 
 // Load environment variables
@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes
-app.use("/api", analyzeRoutes);
+app.use("/api", consultRoutes);
 app.use("/api", feedbackRoutes);
 
 // Start server

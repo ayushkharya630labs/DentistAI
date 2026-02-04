@@ -38,49 +38,38 @@ const model = vertexAI.getGenerativeModel({
 /**
  * Call Gemini with image + text
  */
-export async function callGemini({ imageUri, userText }) {
+export async function callGemini({ imageUri, history, userText }) {
   try {
-    const response = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `
-${SYSTEM_PROMPT}
-
-USER SYMPTOMS:
-${userText}
-
-Always include:
-"This is not a medical diagnosis."
-`,
+    const contents = [
+      {
+        role: "user",
+        parts: [
+          { text: SYSTEM_PROMPT },
+          {
+            fileData: {
+              fileUri: imageUri,
+              mimeType: "image/jpeg",
             },
-            {
-              fileData: {
-                fileUri: imageUri,
-                mimeType: "image/jpeg",
-              },
-            },
-          ],
-        },
-      ],
-    });
+          },
+        ],
+      },
+      ...history,
+      {
+        role: "user",
+        parts: [{ text: userText }],
+      },
+    ];
 
-    console.log("Gemini raw:", JSON.stringify(response, null, 2));
+    const response = await model.generateContent({ contents });
 
-    let text = "No response generated.";
-
-    if (response?.response?.candidates?.length > 0) {
-      text = response.response.candidates[0].content.parts[0].text;
-    } else if (response?.candidates?.length > 0) {
-      text = response.candidates[0].content.parts[0].text;
-    }
+    const text =
+      response?.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No response generated.";
 
     return { success: true, output: text };
 
   } catch (error) {
-    console.error("❌ Gemini Error:", error);
-    return { success: false, error: "Failed to generate AI response" };
+    console.error("Gemini error:", error);
+    return { success: false, error: "Gemini failed" };
   }
 }
