@@ -5,6 +5,7 @@ globalThis.Headers = Headers;
 import { VertexAI } from "@google-cloud/vertexai";
 import dotenv from "dotenv";
 import { SYSTEM_PROMPT } from "../prompts/system.prompt.js";
+import { searchKnowledge } from "./rag.service.js";
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ const model = vertexAI.getGenerativeModel({
   model: "gemini-2.5-flash",
   generationConfig: {
     temperature: 0.3,
-    maxOutputTokens: 1024,
+    maxOutputTokens: 3024,
   },
 });
 
